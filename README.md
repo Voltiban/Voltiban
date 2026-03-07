@@ -46,8 +46,11 @@ I'm passionate about breaking things (legally) and understanding how systems can
 ---
 
 ## 📝 Writeups
-
-> Coming soon — detailed writeups of CTF challenges and vulnerability research.
+- [Lo-Fi](./writeups/Lo-Fi.md) — Local File Inclusion (LFI)
+- [Neighbour](./writeups/Neighbour.md) — IDOR
+- [Corridor](./writeups/Corridor.md) — IDOR + MD5 Hashing
+- [MD2PDF](./writeups/MD2PDF.md) — Server-Side Request Forgery (SSRF)
+- [Valenfind](./writeups/Valenfind.md) — LFI + Hardcoded API Key
 
 ---
 
