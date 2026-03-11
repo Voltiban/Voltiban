@@ -47,10 +47,14 @@ I'm passionate about breaking things (legally) and understanding how systems can
 
 ## 📝 Writeups
 - [Valenfind](./writeups/Valenfind.md) — LFI + Hardcoded API Key
+- [Signed Messages](./writeups/LoveNote.md) — Insecure Randomness / Predictable Key Generation
 - [Lo-Fi](./writeups/Lo-Fi.md) — Local File Inclusion (LFI)
 - [Neighbour](./writeups/Neighbour.md) — IDOR
 - [Corridor](./writeups/Corridor.md) — IDOR + MD5 Hashing
 - [MD2PDF](./writeups/MD2PDF.md) — Server-Side Request Forgery (SSRF)
+- [Cupid's Matchmaker](./writeups/Cupid's-Matchmaker.md) — Stored XSS
+- [Hidden Deep Into my Heart](./writeups/Cupid's-Vault.md) — Information Disclosure via robots.txt
+
 
 
 ---
