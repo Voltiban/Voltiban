@@ -1,4 +1,4 @@
-#  — Hidden Deep Into my Heart TryHackMe Writeup
+#  Hidden Deep Into my Heart - TryHackMe Writeup
 
 **Difficulty:** Easy | **Category:** Web | **Points:** 100
 
