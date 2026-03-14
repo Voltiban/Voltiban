@@ -31,7 +31,7 @@ I'm passionate about breaking things (legally) and understanding how systems can
 
 | Platform | Status |
 |----------|--------|
-| 🟩 TryHackMe | 57 rooms completed |
+| 🟩 TryHackMe | 58 rooms completed |
 | 🟧 HackTheBox | In progress |
 
 ### 🏁 Notable Rooms Completed
