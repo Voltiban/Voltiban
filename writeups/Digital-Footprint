@@ -1,0 +1,124 @@
+# Digital-Footprint — TryHackMe Writeup
+
+**Category:** OSINT  
+**Difficulty:** Easy-Medium  
+**Objective:** Investigate the company ACME Jet Solutions using only public sources.
+
+---
+
+## Task 1 — The Leaked Photo
+
+### Technique: EXIF Metadata Extraction
+
+Photos taken with smartphones frequently contain GPS coordinates embedded in EXIF metadata — invisible in the image itself, but accessible with the right tool.
+
+```bash
+exiftool edited-house-1763031553617.jpg
+```
+
+**Relevant output:**
+```
+GPS Latitude  : 26 deg 12' 14.76"
+GPS Longitude : 28 deg 2' 50.28"
+GPS Position  : 26 deg 12' 14.76", 28 deg 2' 50.28"
+```
+
+> **Important:** exiftool does not always display the hemisphere (N/S/E/W). The coordinates `26°N, 28°E` point to Egypt — but the photo clearly isn't Egyptian. The correct reading is `26°S, 28°E`.
+
+Entering `-26.204, 28.047` in Google Maps: **Johannesburg, South Africa**.
+
+**Flag:** `THM{Johannesburg}`
+
+---
+
+## Task 2 — Archived Company Website
+
+### Technique: Wayback Machine
+
+The company claims to have been founded in 2025, but a former employee says it existed long before. To verify, we searched for the site's first snapshot on the Wayback Machine.
+
+URL provided in the challenge: `warc-acme.com/jef/`
+
+```
+https://web.archive.org/web/*/warc-acme.com
+```
+
+The earliest recorded snapshot revealed the original publication date of the site.
+
+**Flag:** `THM{20160210224602}`
+
+---
+
+## Task 3 — Mysterious Landmark
+
+### Technique: Image Geolocation (GeoINT)
+
+The image shows a tall, thin steel monument located in the center of a busy street, with a historic building in the background.
+
+**Visual clues:**
+- European architecture
+- Spire/needle-shaped monument
+- Historic building on the right with a role in national independence
+
+The monument is the **Spire of Dublin** (The Needle), located on **O'Connell Street**, Dublin, Ireland. The building beside it is the **General Post Office (GPO)** — headquarters of the 1916 Easter Rising, a central landmark in Ireland's fight for independence.
+
+**Flag:** `THM{General Post Office}`
+
+---
+
+## Task 4 — Internal Documents
+
+### Technique: Metadata Analysis in ODT Documents
+
+`.odt` files (LibreOffice) are actually ZIP archives containing multiple XMLs. Document metadata is stored in `meta.xml`.
+
+Extracting the contents:
+
+```bash
+unzip internal-docs.odt -d internal-docs/
+cat internal-docs/meta.xml
+```
+
+**Relevant output:**
+```xml
+<dc:description>Just remember Robin, don't publish this externally!</dc:description>
+<meta:user-defined meta:name="Internal username">markwilliams7243</meta:user-defined>
+```
+
+Using the username `markwilliams7243`, searching across public platforms (YouTube, social media) led to a post containing the final flag.
+
+**Flag:** `THM{Y0u_f0und_7h3_fin4l_fl4g!}`
+
+---
+
+## Key Takeaways
+
+- **EXIF metadata** in photos can reveal precise location — always verify GPS hemisphere when coordinates land somewhere that doesn't match the image.
+- **Wayback Machine** is essential for verifying the history of websites and companies — ideal for investigating founding date claims.
+- **GeoINT** (image geolocation) combines geographic knowledge with visual analysis — iconic landmarks are identifiable even without GPS.
+- **ODT/DOCX documents** are disguised ZIP files — always worth extracting and analyzing the internal XMLs for leaked metadata.
+- **Username as an OSINT vector** — a username found in metadata can lead to public profiles across dozens of platforms.
+
+---
+
+## Tools Used
+
+| Tool | Purpose |
+|---|---|
+| exiftool | EXIF and GPS metadata extraction |
+| Wayback Machine | Website publication history verification |
+| Google Maps | GPS coordinate geolocation |
+| unzip / cat | ODT file extraction and analysis |
+| Sherlock | Username search across public platforms |
+
+```bash
+# Extract image metadata
+exiftool photo.jpg
+
+# Extract ODT contents
+unzip document.odt -d output_folder/
+cat output_folder/meta.xml
+
+# Username search
+sherlock markwilliams7243
+```
