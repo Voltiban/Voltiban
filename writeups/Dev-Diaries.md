@@ -1,87 +1,87 @@
-# Dev Diaries — TryHackMe Writeup
+# Marvenly — TryHackMe Writeup
 
-**Categoria:** OSINT / Reconhecimento Passivo  
-**Dificuldade:** Fácil  
-**Objetivo:** Recuperar informações sobre um desenvolvedor freelancer que desapareceu com o código-fonte do cliente.
-
----
-
-## Contexto
-
-A empresa Marvenly contratou um desenvolvedor freelancer para criar seu site. O desenvolvedor sumiu sem entregar o código-fonte. A única informação disponível é o domínio principal: `marvenly.com`.
+**Category:** OSINT / Passive Reconnaissance  
+**Difficulty:** Easy  
+**Objective:** Recover information about a freelance developer who disappeared with the client's source code.
 
 ---
 
-## Reconhecimento
+## Context
 
-### Q1 — Subdomínio de desenvolvimento
+Marvenly hired a freelance developer to build their website. The developer vanished without delivering the source code. The only available information is the primary domain: `marvenly.com`.
 
-O enunciado sugere que rastros do processo de desenvolvimento podem existir online. Uma das formas mais eficazes de encontrar subdomínios sem enviar pacotes para o alvo é consultar o histórico de certificados SSL públicos.
+---
 
-**Ferramenta:** [crt.sh](https://crt.sh)
+## Reconnaissance
+
+### Q1 — Development Subdomain
+
+The challenge hints that traces of the development process may still exist online. One of the most effective ways to find subdomains without sending packets to the target is to query public SSL certificate history.
+
+**Tool:** [crt.sh](https://crt.sh)
 
 ```
 https://crt.sh/?q=marvenly.com
 ```
 
-**Resultado:** `uat-testing.marvenly.com`
+**Result:** `uat-testing.marvenly.com`
 
 ---
 
-### Q2 — GitHub Username do desenvolvedor
+### Q2 — Developer's GitHub Username
 
-Com o subdomínio em mãos, a próxima etapa é buscar por repositórios públicos relacionados ao projeto. Desenvolvedores freelancers frequentemente usam o GitHub para versionar código.
+With the subdomain in hand, the next step is to search for public repositories related to the project. Freelance developers frequently use GitHub to version their code.
 
-**Busca:**
+**Search:**
 ```
 https://github.com/search?q=marvenly
 ```
 
-**Resultado:** perfil `notvibecoder23` com repositório do projeto Marvenly.
+**Result:** profile `notvibecoder23` with a Marvenly project repository.
 
 ---
 
-### Q3 — Email do desenvolvedor
+### Q3 — Developer's Email Address
 
-O Git registra automaticamente o nome e email do autor em cada commit. Mesmo que o código tenha sido deletado, o histórico de commits permanece. Adicionando `.patch` ao final da URL de qualquer commit, os metadados ficam expostos.
+Git automatically records the author's name and email in every commit. Even if the code was deleted, the commit history remains. By appending `.patch` to any commit URL, the metadata becomes exposed.
 
-**Técnica:**
+**Technique:**
 ```
 https://github.com/notvibecoder23/[repo]/commit/[hash].patch
 ```
 
-**Resultado:** `freelancedevbycoder23@gmail.com`
+**Result:** `freelancedevbycoder23@gmail.com`
 
 ---
 
-### Q4 — Motivo da remoção do código
+### Q4 — Reason for Code Removal
 
-Encontrado diretamente no histórico de commits do repositório.
+Found directly in the repository's commit history.
 
-**Resultado:** `The project was marked as abandoned due to a payment dispute`
+**Result:** `The project was marked as abandoned due to a payment dispute`
 
 ---
 
-### Q5 — Flag escondida
+### Q5 — Hidden Flag
 
-Localizada dentro de um arquivo no repositório (README ou arquivo de configuração).
+Located inside a file in the repository (README or configuration file).
 
 **Flag:** `THM{g1t_h1st0ry_n3v3r_f0rg3ts}`
 
 ---
 
-## Lições aprendidas
+## Key Takeaways
 
-- **crt.sh** é uma fonte poderosa de reconhecimento passivo — certificados SSL são registros públicos permanentes.
-- O Git **nunca esquece**. Mesmo após deletar arquivos, o histórico de commits preserva metadados do autor (nome, email) acessíveis via `.patch`.
-- Desenvolvedores freelancers frequentemente vinculam identidades reais a projetos de clientes sem perceber.
+- **crt.sh** is a powerful passive reconnaissance source — SSL certificates are permanent public records.
+- Git **never forgets**. Even after deleting files, commit history preserves author metadata (name, email) accessible via `.patch`.
+- Freelance developers often link their real identities to client projects without realizing it.
 
 ---
 
-## Ferramentas utilizadas
+## Tools Used
 
-| Ferramenta | Uso |
+| Tool | Purpose |
 |---|---|
-| crt.sh | Enumeração de subdomínios via certificados SSL |
-| GitHub Search | Busca de repositórios relacionados ao alvo |
-| Git `.patch` | Extração de metadados de commits |
+| crt.sh | Subdomain enumeration via SSL certificates |
+| GitHub Search | Finding project-related repositories |
+| Git `.patch` | Extracting commit metadata |
