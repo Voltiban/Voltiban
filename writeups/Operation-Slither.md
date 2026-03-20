@@ -1,40 +1,40 @@
-# Operation Slither — TryHackMe Writeup
+# Sneaky Viper — TryHackMe Writeup
 
-**Categoria:** OSINT / Threat Intelligence  
-**Dificuldade:** Fácil-Médio  
-**Objetivo:** Rastrear os três operadores do grupo hacker "Sneaky Viper" a partir de um único handle encontrado em um fórum.
-
----
-
-## Contexto
-
-A empresa TryTelecomMe descobriu que seu banco de dados estava sendo vendido online pelo grupo **Sneaky Viper**. O único dado disponível é o handle do primeiro operador: `@v3n0mbyt3_`.
+**Category:** OSINT / Threat Intelligence  
+**Difficulty:** Easy-Medium  
+**Objective:** Track down the three operators of the "Sneaky Viper" hacker group starting from a single handle found on a forum.
 
 ---
 
-## Task 1 — Operador 1: v3n0mbyt3_
+## Context
 
-### Plataforma alternativa
+The company TryTelecomMe discovered their database was being sold online by the **Sneaky Viper** group. The only available data is the first operator's handle: `@v3n0mbyt3_`.
 
-**Ferramenta:** Sherlock — busca de username em múltiplas plataformas simultaneamente.
+---
+
+## Task 1 — Operator 1: v3n0mbyt3_
+
+### Finding the alternative platform
+
+**Tool:** Sherlock — searches for a username across multiple platforms simultaneously.
 
 ```bash
 sherlock v3n0mbyt3_
 ```
 
-Entre os resultados, o perfil no **Threads** se destacou com atividade real.
+Among the results, the **Threads** profile stood out with real activity.
 
-**Resultado Q1:** `threads`
+**Answer Q1:** `threads`
 
-### Flag — Base64 em reply
+### Flag — Base64 hidden in a reply
 
-Vasculhando as replies do perfil no Threads, um segundo usuário (`_myst1cv1x3n_`) deixou uma string suspeita nos comentários:
+Browsing the Threads profile replies, a second user (`_myst1cv1x3n_`) left a suspicious string in the comments:
 
 ```
 VEhNe3NsMXRoM3J5X3R3MzN0el80bmRfbDM0a3lfcjNwbDEzcyF9
 ```
 
-Decodificando via Base64:
+Decoding via Base64:
 
 ```bash
 echo "VEhNe3NsMXRoM3J5X3R3MzN0el80bmRfbDM0a3lfcjNwbDEzcyF9" | base64 -d
@@ -44,17 +44,17 @@ echo "VEhNe3NsMXRoM3J5X3R3MzN0el80bmRfbDM0a3lfcjNwbDEzcyF9" | base64 -d
 
 ---
 
-## Task 2 — Operador 2: _myst1cv1x3n_
+## Task 2 — Operator 2: _myst1cv1x3n_
 
-### Identificação
+### Identification
 
-O handle `_myst1cv1x3n_` foi descoberto na reply do Threads na task anterior.
+The handle `_myst1cv1x3n_` was discovered in the Threads reply from the previous task.
 
-**Resultado Q1:** `_myst1cv1x3n_`
+**Answer Q1:** `_myst1cv1x3n_`
 
-### Plataforma alternativa e flag
+### Alternative platform and flag
 
-O perfil no Threads linkava diretamente para o **Instagram**. No Instagram, uma das postagens linkava para o **SoundCloud**. Na descrição de uma das músicas no SoundCloud havia uma string Base64:
+The Threads profile linked directly to **Instagram**. On Instagram, one of the posts linked to **SoundCloud**. In the description of one of the tracks, a Base64 string was found:
 
 ```bash
 echo "[string]" | base64 -d
@@ -64,54 +64,54 @@ echo "[string]" | base64 -d
 
 ---
 
-## Task 3 — Operador 3: sh4d0wF4NG
+## Task 3 — Operator 3: sh4d0wF4NG
 
-### Identificação
+### Identification
 
-Rastreando interações entre os perfis anteriores (curtidas, comentários, follows no SoundCloud), o terceiro operador foi identificado.
+By tracking interactions between the previous profiles (likes, comments, follows on SoundCloud), the third operator was identified.
 
-**Resultado Q1:** `sh4d0wF4NG`
+**Answer Q1:** `sh4d0wF4NG`
 
-### Plataforma alternativa
+### Alternative platform
 
 ```bash
 sherlock sh4d0wF4NG
 ```
 
-Perfil ativo no **GitHub** com três repositórios relevantes, incluindo `red-team-infra` (Terraform/HCL), `evilginx2` (fork de framework de phishing) e `gophish` (toolkit de phishing).
+Active profile on **GitHub** with three relevant repositories: `red-team-infra` (Terraform/HCL), `evilginx2` (forked phishing framework), and `gophish` (phishing toolkit).
 
-**Resultado Q2:** `github`
+**Answer Q2:** `github`
 
 ### Flag — Commit history
 
-No repositório `red-team-infra`, o histórico de commits continha credenciais e a flag embutida.
+Inside the `red-team-infra` repository, the commit history contained credentials and an embedded flag.
 
 **Flag:** `THM{sh4rp_f4ngz_l34k3d_bl00dy_pw}`
 
 ---
 
-## Lições aprendidas
+## Key Takeaways
 
-- **OpSec ruim** é o maior inimigo de threat actors: vincular contas entre plataformas cria uma cadeia rastreável.
-- **Sherlock** automatiza a busca de usernames em dezenas de plataformas — ferramenta essencial para OSINT de pessoas.
-- **Base64** é frequentemente usado para ofuscar dados sensíveis em posts públicos — sempre verifique strings aparentemente aleatórias.
-- A cadeia completa deste lab: `Threads → Instagram → SoundCloud → Base64 → Flag` — OSINT raramente termina na primeira plataforma.
+- **Poor OpSec** is the biggest enemy of threat actors: linking accounts across platforms creates a traceable chain.
+- **Sherlock** automates username searches across dozens of platforms — an essential OSINT tool for person-based investigations.
+- **Base64** is frequently used to obfuscate sensitive data in public posts — always check seemingly random strings.
+- The full chain in this lab: `Threads → Instagram → SoundCloud → Base64 → Flag` — OSINT rarely ends at the first platform.
 
 ---
 
-## Ferramentas utilizadas
+## Tools Used
 
-| Ferramenta | Uso |
+| Tool | Purpose |
 |---|---|
-| Sherlock | Busca de usernames em múltiplas plataformas |
-| Base64 (terminal) | Decodificação de mensagens ofuscadas |
-| GitHub | Análise de repositórios e histórico de commits |
+| Sherlock | Username search across multiple platforms |
+| Base64 (terminal) | Decoding obfuscated messages |
+| GitHub | Repository and commit history analysis |
 
 ```bash
-# Instalar Sherlock
+# Install Sherlock
 pip install sherlock-project --break-system-packages
 
 # Encode/Decode Base64
-echo "texto" | base64
-echo "dGV4dG8=" | base64 -d
+echo "text" | base64
+echo "dGV4dA==" | base64 -d
 ```
