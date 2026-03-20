@@ -31,7 +31,7 @@ I'm passionate about breaking things (legally) and understanding how systems can
 
 | Platform | Status |
 |----------|--------|
-| 🟩 TryHackMe | 65 rooms completed |
+| 🟩 TryHackMe | 67 rooms completed |
 | 🟧 HackTheBox | In progress |
 
 ### 🏁 Notable Rooms Completed
@@ -49,6 +49,7 @@ I'm passionate about breaking things (legally) and understanding how systems can
 - [Valenfind](./writeups/Valenfind.md) — LFI + Hardcoded API Key
 - [Lunizz CTF](./writeups/Lunizz.md) — Base64 Challenge-Response + MySQL Enum + RCE + Backdoor PrivEsc
 - [Signed Messages](./writeups/LoveNote.md) — Insecure Randomness / Predictable Key Generation
+- [Gatekeeper](./writeups/Gatekeeper.md) - Buffer Overflow / Privilege Escalation
 - [Lookup](./writeups/Lookup.md) — User Enumeration + elFinder RCE + PATH Hijacking + sudo Misconfiguration
 - [Lo-Fi](./writeups/Lo-Fi.md) — Local File Inclusion (LFI)
 - [Neighbour](./writeups/Neighbour.md) — IDOR
