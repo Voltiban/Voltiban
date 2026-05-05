@@ -58,6 +58,7 @@ I'm passionate about breaking things (legally) and understanding how systems can
 - [Cupid's Matchmaker](./writeups/Cupid's-Matchmaker.md) — Stored XSS
 - [Hidden Deep Into my Heart](./writeups/Cupid's-Vault.md) — Information Disclosure via robots.txt
 - [TryHeartMe](./writeups/TryHeartMe.md) —  JWT algorithm confusion / improper token validation
+- [ALL](./writeups/)
 
 
 
